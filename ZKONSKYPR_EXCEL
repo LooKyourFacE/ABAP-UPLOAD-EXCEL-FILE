@@ -1,0 +1,32 @@
+*&---------------------------------------------------------------------*
+*& Report ZKONSKYPR_EXCEL
+*&---------------------------------------------------------------------*
+*& Author: Konstantinos Kyprianidis
+*& Date: 22/09/2021
+*& Upload excel file
+*&---------------------------------------------------------------------*
+REPORT zkonskypr_excel.
+
+INCLUDE zkonskypr_excel_top.
+
+START-OF-SELECTION.
+
+* Upload excel file
+    CALL FUNCTION 'TEXT_CONVERT_XLS_TO_SAP'
+      EXPORTING
+*       I_FIELD_SEPERATOR    =
+        i_line_header        = 'X' "In case the excel have header line
+        i_tab_raw_data       = lt_raw_data
+        i_filename           = p_path
+      TABLES
+        i_tab_converted_data = lt_data_temp
+      EXCEPTIONS
+        conversion_failed    = 1
+        OTHERS               = 2.
+    IF sy-subrc <> 0.
+      MESSAGE 'Error on uploading the file' TYPE 'E'.
+    ELSE.
+      LOOP AT lt_data_temp INTO wa_data_temp.
+          APPEND wa_data_temp TO lt_bookings.
+      ENDLOOP.
+    ENDIF.
