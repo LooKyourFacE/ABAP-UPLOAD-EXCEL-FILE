@@ -1,0 +1,50 @@
+*&---------------------------------------------------------------------*
+*& Include          ZKONSKYPR_EXCEL_TOP
+*&---------------------------------------------------------------------*
+
+* Structure of the output table (or db)
+TYPES: BEGIN OF st_bookings_db,
+       carrid   TYPE scarr-carrid,
+       bookid   TYPE sbook-bookid,
+       passname TYPE sbook-passname,
+END OF st_bookings_db.
+
+* Create local table and working area from our structure
+DATA: lt_bookings TYPE STANDARD TABLE OF st_bookings_db,
+      wa_bookings TYPE st_bookings_db.
+
+* Structure of the raw data from excel
+TYPES: BEGIN OF st_bookings_excel,
+       carrid(3)    TYPE c,
+       bookid(8)    TYPE c,
+       passname(25) TYPE c,
+END OF st_bookings_excel.
+
+* Excel raw table and working area from our structure
+DATA: lt_raw_data  TYPE truxs_t_text_data,
+      lt_data_temp TYPE STANDARD TABLE OF st_bookings_excel,
+      wa_data_temp TYPE st_bookings_excel.
+
+* File Dialog data
+DATA lt_filetable TYPE filetable.
+DATA lv_rc TYPE i.
+
+SELECTION-SCREEN BEGIN OF BLOCK b1.
+  PARAMETERS p_path TYPE  rlgrap-filename.
+SELECTION-SCREEN END OF BLOCK b1.
+
+* File Dialog output
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_path.
+  CALL METHOD cl_gui_frontend_services=>file_open_dialog
+    EXPORTING
+      initial_directory       = ''
+    CHANGING
+      file_table              = lt_filetable
+      rc                      = lv_rc
+    EXCEPTIONS
+      file_open_dialog_failed = 1
+      cntl_error              = 2
+      OTHERS                  = 3.
+  READ TABLE lt_filetable INTO DATA(ls_filestruct) INDEX 1.
+  CHECK lv_rc > 0.
+  MOVE ls_filestruct TO p_path.
